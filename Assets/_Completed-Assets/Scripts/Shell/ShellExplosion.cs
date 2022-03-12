@@ -1,8 +1,10 @@
 using UnityEngine;
+using ObjectPool;
+using System.Collections;
 
 namespace Complete
 {
-    public class ShellExplosion : MonoBehaviour
+    public class ShellExplosion : PooledMonobehaviour
     {
         public LayerMask m_TankMask;                        // Used to filter what the explosion affects, this should be set to "Players".
         public ParticleSystem m_ExplosionParticles;         // Reference to the particles that will play on explosion.
@@ -13,10 +15,10 @@ namespace Complete
         public float m_ExplosionRadius = 5f;                // The maximum distance away from the explosion tanks can be and are still affected.
 
 
-        private void Start ()
+        private void OnEnable()
         {
-            // If it isn't destroyed by then, destroy the shell after it's lifetime.
-            Destroy (gameObject, m_MaxLifeTime);
+            StartCoroutine(DeactivateAfterLifeTime());
+            m_ExplosionParticles.transform.SetParent(transform);
         }
 
 
@@ -63,10 +65,10 @@ namespace Complete
 
             // Once the particles have finished, destroy the gameobject they are on.
             ParticleSystem.MainModule mainModule = m_ExplosionParticles.main;
-            Destroy (m_ExplosionParticles.gameObject, mainModule.duration);
+            //Destroy (m_ExplosionParticles.gameObject, mainModule.duration);
 
             // Destroy the shell.
-            Destroy (gameObject);
+            gameObject.SetActive(false);
         }
 
 
@@ -88,6 +90,21 @@ namespace Complete
             damage = Mathf.Max (0f, damage);
 
             return damage;
+        }
+
+
+        private IEnumerator DeactivateAfterLifeTime()
+        {
+            //Wait for 14 secs.
+            yield return new WaitForSeconds(m_MaxLifeTime);
+            //Game object will turn off
+            this.gameObject.SetActive(false);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            this.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
         }
     }
 }
