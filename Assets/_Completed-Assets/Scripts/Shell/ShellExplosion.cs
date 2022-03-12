@@ -95,9 +95,7 @@ namespace Complete
 
         private IEnumerator DeactivateAfterLifeTime()
         {
-            //Wait for 14 secs.
             yield return new WaitForSeconds(m_MaxLifeTime);
-            //Game object will turn off
             this.gameObject.SetActive(false);
         }
 
