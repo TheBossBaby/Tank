@@ -30,16 +30,6 @@ public class TankMineDeployer : MonoBehaviour
         Mine.Deploy(m_tankShooting.m_PlayerNumber);
     }
 
-    public void CoolDown()
-    {
-        StartCoroutine(CooldownTimer());
-    }
-    private IEnumerator CooldownTimer()
-    {
-        yield return new WaitForSeconds(m_coolDownDuration);
-        SetState(new ReadyToDeployState(transform));
-    }
-
     public void SetState(TankMineDeployerState state)
     {
         if (m_currentState != null)
