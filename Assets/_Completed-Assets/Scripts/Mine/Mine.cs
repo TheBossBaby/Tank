@@ -12,7 +12,8 @@ namespace Complete
         public float m_MineTimerDuration;
         public float m_TriggerRadius;
         public float m_MaximumDamage;
-
+        public ParticleSystem m_ExplosionParticleEffect;
+        public AudioSource m_LandMineExplosionAudioSource;
         private int m_DeployerPlayerNumber = 0;
         private Coroutine m_MineTimer;
 
@@ -45,7 +46,16 @@ namespace Complete
                 }
             }
             OnExplode?.Invoke(transform.position);
+            PlayParticleEffect();
+            m_LandMineExplosionAudioSource.Play();
             Destroy(gameObject);
+        }
+
+        private void PlayParticleEffect()
+        {
+            m_ExplosionParticleEffect.transform.SetParent(null);
+            m_ExplosionParticleEffect.Play();
+            Destroy(m_ExplosionParticleEffect.gameObject, m_ExplosionParticleEffect.main.duration);
         }
 
         private void DetectEnemy()
@@ -60,21 +70,23 @@ namespace Complete
                     && (Vector3.Distance(transform.position, enemy.transform.position) < m_TriggerRadius)
                     && enemy.m_PlayerNumber != m_DeployerPlayerNumber)
                 {
-                    float proximity = (transform.position - enemy.transform.position).magnitude;
-                    float effect = 1 - (proximity / m_TriggerRadius);
-                    enemy.gameObject.GetComponent<TankHealth>().TakeDamage(effect * m_MaximumDamage);
+                    enemy.gameObject.GetComponent<TankHealth>().TakeDamage(CalculateDamage(enemy.transform));
                     OnExplode?.Invoke(transform.position);
+                    PlayParticleEffect();
+                    m_LandMineExplosionAudioSource.Play();
                     Destroy(this.gameObject);
                 }
             }
         }
 
-        void OnDrawGizmosSelected()
+        private float CalculateDamage(Transform enemyTransform)
         {
-            // Draw a yellow sphere at the transform's position
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(transform.position, m_TriggerRadius);
+            float proximity = (transform.position - enemyTransform.position).magnitude;
+            float effect = 1 - (proximity / m_TriggerRadius);
+            return effect * m_MaximumDamage;
         }
+
+
         private IEnumerator MineTimer()
         {
             yield return new WaitForSeconds(m_MineTimerDuration);
